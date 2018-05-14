@@ -30,6 +30,7 @@
 	$empresa = str_replace("e", "3", $empresa);
 	$empresa = str_replace("i", "1", $empresa);
 	$empresa = str_replace("o", "0", $empresa);
+	str_replace(search, replace, subject)
 	echo "<br>";
 	echo $empresa;
 	echo "<br>";
