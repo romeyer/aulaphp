@@ -32,6 +32,10 @@
 		echo "sábado";
 		break;
 
+		default: 
+			echo "Data Inválida!";
+		break;
+
 	}
 
 ?>
