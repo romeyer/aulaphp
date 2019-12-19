@@ -1,0 +1,32 @@
+<meta charset="UTF-8">
+
+<input/>
+<button>Compare com o número que estou pensando!</button>
+
+<script>
+ 	var segredos = [3,4,5,6,8];
+
+	var input = document.querySelector("input");
+
+	function verifica() {
+
+		achou = false;
+
+		for (var posicao = 0; posicao < segredos.length; posicao++){
+
+			if(segredos[posicao] == input.value) {
+		        alert("Parabéns! Você acertou o número secreto");
+		        achou = true;
+		        break;
+		    }
+
+		}
+		if (achou == false)  {
+	        alert("Infelizmente você errou!");
+	    }
+	    
+	}
+    
+    var button = document.querySelector("button");
+	button.onclick = verifica;
+</script>
