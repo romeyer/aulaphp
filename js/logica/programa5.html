@@ -1,0 +1,22 @@
+<canvas width="600" height="400"></canvas>
+
+<script>
+
+	var screen = document.querySelector('canvas');
+	var obj 	   = screen.getContext('2d');
+
+	// backrgound
+	obj.fillStyle = 'lightgrey';
+	obj.fillRect(0, 0, 600, 400);
+
+	function desenhaQuadrado(x, y, tamanho, cor){
+		obj.fillStyle = cor;
+		obj.fillRect(x, y, tamanho, tamanho);
+		obj.strokeRect(x, y, tamanho, tamanho);
+	}
+  	
+  	for(x = 0; x <= 600; x = x + 20){
+  		desenhaQuadrado(x, 2, 20, 'green');	
+  	}
+  	
+</script>
