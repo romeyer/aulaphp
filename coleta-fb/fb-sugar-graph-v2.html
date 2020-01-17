@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+	<head>
+		<meta charset="UTF-8">
+		<title>Sugar's Graph API</title>
+	</head>
+
+	<!-- Tooltip -->
+	<style>
+		.tooltip {position: relative;display: inline-block;border-bottom: 1px dotted black;}
+		.tooltip .tooltiptext {visibility: hidden;width: 120px;background-color: black;color: #fff;text-align: center;border-radius: 6px;padding: 5px 0;position: absolute;z-index: 1;top: 150%;left: 50%;margin-left: -60px;}
+		.tooltip .tooltiptext::after {content: "";position: absolute;bottom: 100%;left: 50%;margin-left: -5px;border-width: 5px;border-style: solid;border-color: transparent transparent black transparent;}
+		.tooltip:hover .tooltiptext {visibility: visible;}
+	</style>
+
+	<body>
+		<!-- FORM DA BUSCA -->
+		<h2>Sugar's Graph API</h2>
+		<p style="margin-bottom: 5px;">Digite o nome da página que deseja obter as informações:</p>
+		<input type="text" class="txtPagina">
+		<button class="btnBuscar">Buscar</button>
+		<hr>
+		
+		<!-- DADOS DA PAGINA  -->
+		<h4 style="margin-bottom: 5px;">Dados da Página</h4>
+		<table class="tabela-pagina" border="1">
+			<tr>
+				<td>Id da Página</td>
+				<td>Nome</td>
+				<td>Imagem de Capa</td>
+				<td>Curtidas</td>
+				<td>Status da Verificação</td>
+				<td>Fotos Perfil</td>
+			</tr>
+		</table>
+		<hr>
+
+		<!-- LISTAGEM DOS POSTS  -->
+		<h4 style="margin-bottom: 5px;">LISTAGEM DOS POSTS</h4>
+
+		<table class="tabela-posts" border="1">
+			<tr>
+				<td>Qtd. Posts</td>
+				<td>Likes nos X posts</td>
+				<td>Share nos X posts</td>
+				<td>Comentários nos X posts</td>
+				<td>Reações nos X posts</td>
+				<td>Média de Interações/posts</td>
+				<td>Imagens da Página</td>
+				<td>Textos da Página</td>
+				<td>Todos os Textos da página</td>
+			</tr>
+			<tr>
+				<td class="posts-total"></td>
+				<td class="like-total-posts"></td>
+				<td class="share-total-posts"></td>
+				<td class="comentarios-total-posts"></td>
+				<td class="reacoes-total-posts"></td>
+				<td class="media-interacao-posts"></td>
+				<td class="imagens-pagina"></td>
+				<td class="textos-pagina"></td>
+				<td class="todos-textos-pagina"></td>
+			</tr>
+		</table>
+
+		<div class="posts"></div>
+
+
+		<!-- MODAL imagens pagina -->
+		<div id='modal-imagens-perfil' class='modal' style='max-width: 50%;'>
+			<p class="modal-name"></p>
+			<div style='width: 100%;' class="modal-imgs"></div>
+		</div>
+
+		<!-- MODAL imagens posts -->
+		<div id='modal-imagens-posts' class='modal' style='max-width: 50%;'>
+			<p class="modal-posts-name"></p>
+			<div style='width: 100%;' class="modal-posts-img"></div>
+		</div>
+
+		<!-- JQUERY HOSPEDADO NO GOOGLE -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+		<script type="text/javascript">
+			
+			$(document).ready(function(){
+				$('.btnBuscar').on('click', function(){
+					var pagina = $('.txtPagina').val();
+
+					// Chama funcao dinamica
+					$.ajax({
+						type: "GET",
+						dataType: "json",
+						// Versão com nossa api ==> Dados da Página
+						url: "https://graph.facebook.com/"+pagina+"?locale=en&fields=id,name,cover,link,photos.limit%281%29{images{source}},engagement,verification_status&access_token=EAADQZAoJZBZBH0BACL6sG01AcMPzrZBTyj4hFhn0BZAlyMogPPR63t0eIgvc9uQW64ZAbQnhLsnlySAEb7JXVvUSepiCXEo1DWfLkZCyVp0oKLmk8YeyHoheayFziffYarR0MIZAdWT08rGR5xmZAli5TTVXttciZAItXwiZC3AJlZBBAAZDZD",
+						// versão com api de outro para pegar imagens
+						// url: "https://graph.facebook.com/v3.1/"+pagina+"/photos?access_token=EAADQZAoJZBZBH0BACL6sG01AcMPzrZBTyj4hFhn0BZAlyMogPPR63t0eIgvc9uQW64ZAbQnhLsnlySAEb7JXVvUSepiCXEo1DWfLkZCyVp0oKLmk8YeyHoheayFziffYarR0MIZAdWT08rGR5xmZAli5TTVXttciZAItXwiZC3AJlZBBAAZDZD&locale=en&pretty=1&fields=images%7Bsource%7D&limit=1&after=QVFIUjJPdkVDNllaaVlGQWNoazd1V2FZASEVWX3JTOHUydW9EdDQzTFBPVmtCdVpGVzZAlRFdZAX0h5Rk9JX1hCVkp2WTdBVU9udVF3anN5ZA2FSVURoWi15QV9n",
+
+						success: function(dadosDaPaginaFb){
+							console.log("Deu certo, po! Dados da página OK!");
+							console.log(dadosDaPaginaFb);
+							// tabela principal
+							$(".tabela-pagina").append("<tr><td>"+dadosDaPaginaFb.id+"</td><td><a href='"+dadosDaPaginaFb.link+"' target='blank'>"+dadosDaPaginaFb.name+"</a></td><td><a href='"+dadosDaPaginaFb.cover.source+"' target='blank'>Link de Capa</a></td><td>"+dadosDaPaginaFb.engagement.count+", ou seja, "+dadosDaPaginaFb.engagement.social_sentence+"</td><td>"+dadosDaPaginaFb.verification_status+"</td><td><a href='#modal-imagens-perfil' rel='modal:open'>"+dadosDaPaginaFb.photos.data['0'].images.length+"</a></td></tr>");
+
+							//  Modal
+							$(".modal-name").append("Essas são as imagens de Perfil da página:"+dadosDaPaginaFb.name+":");
+
+							for (var numFotos = 0; numFotos < dadosDaPaginaFb.photos.data['0'].images.length; numFotos++) {
+								$(".modal-imgs").append("<div style='width: 20%;float: left; border: 2px solid #4e4e4e; margin: 2%; text-align: center;'><img src='"+dadosDaPaginaFb.photos.data['0'].images[''+numFotos+''].source+"' style='width: 100%;'><br><a href='"+dadosDaPaginaFb.photos.data['0'].images[''+numFotos+''].source+"' target='blank'>Link</a></div>");
+							}
+						},
+						error: function(){
+							console.log("Deu errado, trouxa! Erro nos dados da Página");
+							$(".tabela-pagina").append("<tr style='color: red;'><td>Deu Errado!</td><td>Deu Errado!</td><td>Deu Errado!</td><td>Deu Errado!</td><td>Deu Errado!</td><td>Deu Errado!</td></tr>");
+						}
+					});
+
+
+
+
+					// Chama funcao dinamica
+					$.ajax({
+						type: "GET",
+						dataType: "json",
+						
+						// versão meio termo que trouxe melhor resultado para os mais diferentes cenarios
+						url : "https://graph.facebook.com/v3.1/"+pagina+"/posts?access_token=229138694600829|e1203bcb5f1fdba4798f502b1aeba344&fields=message,id,full_picture,created_time,from,place,shares,source,type,reactions.type(LIKE).limit(0).summary(1).as(reactions),permalink_url,link,attachments,comments.limit(0).summary(1).as(comments_count),reactions.type(LIKE).limit(0).summary(1).as(reactions_like),reactions.type(LOVE).limit(0).summary(1).as(reactions_love),reactions.type(WOW).limit(0).summary(1).as(reactions_wow),reactions.type(HAHA).limit(0).summary(1).as(reactions_haha),reactions.type(SAD).limit(0).summary(1).as(reactions_sad),reactions.type(ANGRY).limit(0).summary(1).as(reactions_angry),reactions.type(THANKFUL).limit(0).summary(1).as(reactions_thankful)&limit=2",
+
+						// versão que pega tudo =)
+						// url: "https://graph.facebook.com/v3.1/"+pagina+"/posts?access_token=229138694600829|e1203bcb5f1fdba4798f502b1aeba344&locale=en&fields=message,id,full_picture,created_time,from,place,shares,source,type,reactions.type(LIKE).limit(0).summary(1).as(reactions),permalink_url,link,attachments,comments.limit(0).summary(1).as(comments_count),reactions.type(LIKE).limit(0).summary(1).as(reactions_like),reactions.type(LOVE).limit(0).summary(1).as(reactions_love),reactions.type(WOW).limit(0).summary(1).as(reactions_wow),reactions.type(HAHA).limit(0).summary(1).as(reactions_haha),reactions.type(SAD).limit(0).summary(1).as(reactions_sad),reactions.type(ANGRY).limit(0).summary(1).as(reactions_angry),reactions.type(THANKFUL).limit(0).summary(1).as(reactions_thankful)&limit=10",
+
+						// // versão que pega apenas os posts
+						// url: "https://graph.facebook.com/v3.1/"+pagina+"/posts?access_token=229138694600829|e1203bcb5f1fdba4798f502b1aeba344",
+						success: function(dadosDePosts){
+							console.log("Deu certo, po! Dados dos posts da página");
+							console.log(dadosDePosts);
+							// Tabela de posts
+
+
+
+							
+							
+
+
+							for (var numPosts = 0; numPosts < dadosDePosts.data.length; numPosts++) {
+
+									// Qtd. Posts
+									$(".posts-total").append(dadosDePosts.data.length);
+
+									// Likes nos X posts
+									var bacon = parseInt(0*1);
+									var somaTotal = parseInt(0*1);
+									var soma = (parseInt(dadosDePosts.data[''+numPosts+''].reactions_like.summary.total_count)*1);
+									
+
+									((parseInt(bacon))*1) + ((parseInt(soma))*1);
+									somaTotal = parseInt(soma*1) + parseInt(bacon*1);
+
+									(somaTotal*1) += (somaTotal*1);
+									
+								
+									alert(parseInt(somaTotal));
+									
+									
+									$(".like-total-posts").append(parseInt(somaTotal));
+
+									// Share nos X posts
+									$(".share-total-posts").append("");
+
+									// Comentários nos X posts
+									$(".comentarios-total-posts").append("");
+
+									// Reações nos X posts
+									$(".reacoes-total-posts").append("");
+
+									// Média de Interações/posts
+									$(".media-interacao-posts").append("");
+
+									// Imagens da Página
+									$(".imagens-pagina").append("");
+
+									// Textos da Página
+									$(".textos-pagina").append("");
+
+									// Todos os Textos da página
+									$(".todos-textos-pagina").append("");
+
+								
+									$(".posts").append("<p style='margin-bottom: 5px;'>Post nº "+(numPosts+1)+"</p><table class='tabela=posts table-"+numPosts+"' border='1'><tr><td><a href='#modal-imagens-perfil"+numPosts+"' rel='modal:open'><img src='"+dadosDePosts.data[''+numPosts+''].full_picture+"' style='max-width: 220px;'></a></td><td>"+dadosDePosts.data[''+numPosts+''].created_time+"<hr />"+dadosDePosts.data[''+numPosts+''].message+"<hr />Like: "+dadosDePosts.data[''+numPosts+''].reactions_like.summary.total_count+" | Share: "+dadosDePosts.data[''+numPosts+''].shares.count+" | Comentários:"+dadosDePosts.data[''+numPosts+''].comments_count.summary.total_count+" | Reações: <span class='tooltip'>"+dadosDePosts.data[''+numPosts+''].reactions.summary.total_count+"<span class='tooltiptext'>Raiva: "+dadosDePosts.data[''+numPosts+''].reactions_angry.summary.total_count+"<br /> Alegria: "+dadosDePosts.data[''+numPosts+''].reactions_haha.summary.total_count+"<br /> Amor: "+dadosDePosts.data[''+numPosts+''].reactions_love.summary.total_count+"<br /> Tristeza: "+dadosDePosts.data[''+numPosts+''].reactions_sad.summary.total_count+"<br /> Gratidão: "+dadosDePosts.data[''+numPosts+''].reactions_thankful.summary.total_count+"<br /> Wow: "+dadosDePosts.data[''+numPosts+''].reactions_wow.summary.total_count+"</span></span><hr /><a href='"+dadosDePosts.data[''+numPosts+''].link+"' target='blank'>Link do post</a><br /></td></tr></table>");
+								
+
+								console.log(numPosts);
+
+
+
+								console.log("POSICAO DO INDEX");
+								console.log(dadosDePosts.data[''+numPosts+'']);
+								
+								console.log("LINK DA IMAGEM");
+								console.log(dadosDePosts.data[''+numPosts+''].full_picture);
+								
+								console.log("CRIADO EM");
+								console.log(dadosDePosts.data[''+numPosts+''].created_time);
+								
+								console.log("TEXTO DO POST");
+								console.log(dadosDePosts.data[''+numPosts+''].message);
+								
+								console.log("TOTAL DE LIKES");
+								console.log(dadosDePosts.data[''+numPosts+''].reactions_like.summary.total_count);
+								
+								console.log("TOTAL DE SHARES");
+								console.log(dadosDePosts.data[''+numPosts+''].shares.count);
+								
+								console.log("TOTAL DE REACOES");
+								console.log(dadosDePosts.data[''+numPosts+''].reactions.summary.total_count);
+								
+								console.log("TOTAL DE REACOES COM RAIVA");
+								console.log(dadosDePosts.data[''+numPosts+''].reactions_angry.summary.total_count);
+								
+								console.log("TOTAL DE REACOES ALEGRES");
+								console.log(dadosDePosts.data[''+numPosts+''].reactions_haha.summary.total_count);
+								
+								console.log("TOTAL DE REACOES DE AMOR");
+								console.log(dadosDePosts.data[''+numPosts+''].reactions_love.summary.total_count);
+								
+								console.log("TOTAL DE REACOES TRISTES");
+								console.log(dadosDePosts.data[''+numPosts+''].reactions_sad.summary.total_count);
+								
+								console.log("TOTAL DE REACOES DE GRATIDAO");
+								console.log(dadosDePosts.data[''+numPosts+''].reactions_thankful.summary.total_count);
+								
+								console.log("TOTAL DE REACOES UAU");
+								console.log(dadosDePosts.data[''+numPosts+''].reactions_wow.summary.total_count);
+								
+								console.log("TOTAL DE COMENTARIOS");
+								console.log(dadosDePosts.data[''+numPosts+''].comments_count.summary.total_count);
+								
+								console.log("LINK");
+								console.log(dadosDePosts.data[''+numPosts+''].link);
+								
+								// console.log("LINK PERMANENTE");
+								// console.log(dadosDePosts.data[''+numPosts+''].permalink_url);
+								// ANEXOS
+								console.log("QUANTIDADE DE ANEXOS");
+								console.log(dadosDePosts.data[''+numPosts+''].attachments.data.length);
+								
+								// console.log("IMAGEM DO ANEXO");
+								// console.log(dadosDePosts.data[''+numPosts+''].attachments.data['0'].media.image.src);
+								
+								// console.log("URL DO ANEXO");
+								// console.log(dadosDePosts.data[''+numPosts+''].attachments.data['0'].target.url);
+								
+								console.log("TITULO DO AXEXO");
+								console.log(dadosDePosts.data[''+numPosts+''].attachments.data['0'].title);
+								
+								console.log("TIPO DO ANEXO");
+								console.log(dadosDePosts.data[''+numPosts+''].attachments.data['0'].type);
+								
+								// console.log("URL DO ANEXO");
+								// console.log(dadosDePosts.data[''+numPosts+''].attachments.data['0'].url);
+							}
+
+							
+
+							
+							
+							
+							
+							
+							
+						},
+						error: function(){
+							console.log("Deu errado, trouxa! Erro nos dados dos posts da página");
+						}
+					});
+				});
+			});
+
+		</script>
+
+		<!-- Modal -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+		
+		<!-- Tooltip -->
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+		<script>
+    $(function() {
+        $(document).tooltip();
+    });
+</script>
+	</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+<!-- https://graph.facebook.com/v3.1/
+"+pagina+"
+/posts
+?access_token=229138694600829|e1203bcb5f1fdba4798f502b1aeba344
+&locale=en
+&fields=message
+,id
+,full_picture
+,created_time
+,from
+,place
+,shares
+,source
+,type
+,reactions
+.type(LIKE).limit(0).summary(1).as(reactions)
+,permalink_url
+,link
+,attachments
+,comments.limit(0).summary(1).as(comments_count)
+,reactions.type(LIKE).limit(0).summary(1).as(reactions_like)
+,reactions.type(LOVE).limit(0).summary(1).as(reactions_love)
+,reactions.type(WOW).limit(0).summary(1).as(reactions_wow)
+,reactions.type(HAHA).limit(0).summary(1).as(reactions_haha)
+,reactions.type(SAD).limit(0).summary(1).as(reactions_sad)
+,reactions.type(ANGRY).limit(0).summary(1).as(reactions_angry)
+,reactions.type(THANKFUL).limit(0).summary(1).as(reactions_thankful)
+&limit=10
+&after=Q2c4U1pXNTBYM0YxWlhKNVgzTjBiM0o1WDJsa0R5TTBOalV5TXpVM01qWTRORE14TURNNk56UXdPVEF3T1RrMU9UZAzBNell3TlRVMU13OE1ZAWEJwWDNOMGIzSjVYMmxrRHlBME5qVXlNelUzTWpZANE5ETXhNRE5mTWpnNE9UWXdNak01TVRBM016QTNPUThFZAEdsdFpRWmR1ZAE43QVE9PQZDZD -->
